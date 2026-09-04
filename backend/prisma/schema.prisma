@@ -1,0 +1,257 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  fullName  String
+  username  String   @unique
+  email     String   @unique
+  password  String
+  avatarUrl String?
+  bio       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memories                  Memory[]
+  diaryEntries              DiaryEntry[]
+  timelineEvents            TimelineEvent[]
+  sentLetters               Letter[]                  @relation("SentLetters")
+  receivedLetters           Letter[]                  @relation("ReceivedLetters")
+  ownedSpaces               SharedSpace[]             @relation("OwnedSpaces")
+  spaceMemberships          SharedSpaceMember[]
+  invitationsSent           SharedSpaceInvitation[]   @relation("InviterInvitations")
+  invitationsReceived       SharedSpaceInvitation[]   @relation("InviteeInvitations")
+  createdCommitments        Commitment[]              @relation("CreatedCommitments")
+  commitmentParticipations  CommitmentParticipant[]
+  notifications             Notification[]
+  gameQuestions             GameQuestion[]
+  gameResults               GameResult[]
+}
+
+model Memory {
+  id            String         @id @default(uuid())
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sharedSpaceId String?
+  sharedSpace   SharedSpace?   @relation(fields: [sharedSpaceId], references: [id], onDelete: SetNull)
+  title         String
+  description   String         @db.Text
+  date          DateTime
+  time          String?
+  location      String?
+  mood          String
+  tags          String         @default("")
+  privacyStatus String         @default("PRIVATE") // PRIVATE, SHARED
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  images        MemoryImage[]
+}
+
+model MemoryImage {
+  id        String   @id @default(uuid())
+  memoryId  String
+  memory    Memory   @relation(fields: [memoryId], references: [id], onDelete: Cascade)
+  url       String
+  publicId  String?
+  caption   String?
+  createdAt DateTime @default(now())
+}
+
+model DiaryEntry {
+  id        String       @id @default(uuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  content   String       @db.Text
+  date      DateTime
+  mood      String
+  tags      String       @default("")
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  images    DiaryImage[]
+}
+
+model DiaryImage {
+  id           String     @id @default(uuid())
+  diaryEntryId String
+  diaryEntry   DiaryEntry @relation(fields: [diaryEntryId], references: [id], onDelete: Cascade)
+  url          String
+  publicId     String?
+  createdAt    DateTime   @default(now())
+}
+
+model TimelineEvent {
+  id            String          @id @default(uuid())
+  userId        String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sharedSpaceId String?
+  sharedSpace   SharedSpace?    @relation(fields: [sharedSpaceId], references: [id], onDelete: SetNull)
+  title         String
+  description   String          @db.Text
+  date          DateTime
+  time          String?
+  location      String?
+  mood          String?
+  isShared      Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  images        TimelineImage[]
+}
+
+model TimelineImage {
+  id              String        @id @default(uuid())
+  timelineEventId String
+  timelineEvent   TimelineEvent @relation(fields: [timelineEventId], references: [id], onDelete: Cascade)
+  url             String
+  publicId        String?
+  createdAt       DateTime      @default(now())
+}
+
+model Letter {
+  id            String       @id @default(uuid())
+  senderId      String
+  sender        User         @relation("SentLetters", fields: [senderId], references: [id], onDelete: Cascade)
+  recipientId   String?
+  recipient     User?        @relation("ReceivedLetters", fields: [recipientId], references: [id], onDelete: SetNull)
+  sharedSpaceId String?
+  sharedSpace   SharedSpace? @relation(fields: [sharedSpaceId], references: [id], onDelete: SetNull)
+  title         String
+  content       String       @db.Text
+  letterType    String       // "MYSELF", "USER", "FUTURE"
+  unlockDate    DateTime?
+  isRead        Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model SharedSpace {
+  id          String                  @id @default(uuid())
+  name        String
+  description String?                 @db.Text
+  coverImage  String?
+  ownerId     String
+  owner       User                    @relation("OwnedSpaces", fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+
+  members     SharedSpaceMember[]
+  invitations SharedSpaceInvitation[]
+  memories    Memory[]
+  timeline    TimelineEvent[]
+  letters     Letter[]
+  commitments Commitment[]
+  games       Game[]
+}
+
+model SharedSpaceMember {
+  id            String      @id @default(uuid())
+  sharedSpaceId String
+  sharedSpace   SharedSpace @relation(fields: [sharedSpaceId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role          String      @default("MEMBER") // "OWNER", "MEMBER"
+  joinedAt      DateTime    @default(now())
+
+  @@unique([sharedSpaceId, userId])
+}
+
+model SharedSpaceInvitation {
+  id            String      @id @default(uuid())
+  sharedSpaceId String
+  sharedSpace   SharedSpace @relation(fields: [sharedSpaceId], references: [id], onDelete: Cascade)
+  inviterId     String
+  inviter       User        @relation("InviterInvitations", fields: [inviterId], references: [id], onDelete: Cascade)
+  inviteeId     String
+  invitee       User        @relation("InviteeInvitations", fields: [inviteeId], references: [id], onDelete: Cascade)
+  status        String      @default("PENDING") // "PENDING", "ACCEPTED", "DECLINED"
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Commitment {
+  id            String                  @id @default(uuid())
+  creatorId     String
+  creator       User                    @relation("CreatedCommitments", fields: [creatorId], references: [id], onDelete: Cascade)
+  sharedSpaceId String?
+  sharedSpace   SharedSpace?            @relation(fields: [sharedSpaceId], references: [id], onDelete: SetNull)
+  title         String
+  promiseText   String                  @db.Text
+  status        String                  @default("PENDING") // "PENDING", "ACTIVE", "DECLINED", "COMPLETED"
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+
+  participants  CommitmentParticipant[]
+}
+
+model CommitmentParticipant {
+  id              String      @id @default(uuid())
+  commitmentId    String
+  commitment      Commitment  @relation(fields: [commitmentId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status          String      @default("PENDING") // "PENDING", "ACCEPTED", "DECLINED"
+  signedAt        DateTime?
+  signatureNotes  String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@unique([commitmentId, userId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String   // SPACE_INVITE, COMMITMENT_REQUEST, COMMITMENT_SIGNED, NEW_SHARED_MEMORY, LETTER_RECEIVED, ACTIVITY
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Game {
+  id            String         @id @default(uuid())
+  creatorId     String
+  sharedSpaceId String?
+  sharedSpace   SharedSpace?   @relation(fields: [sharedSpaceId], references: [id], onDelete: SetNull)
+  title         String
+  type          String         // "KNOW_ME", "MEMORY_QUIZ", "THIS_OR_THAT", "SPIN_MEMORY"
+  config        String?        @db.Text
+  createdAt     DateTime       @default(now())
+
+  questions     GameQuestion[]
+  results       GameResult[]
+}
+
+model GameQuestion {
+  id            String   @id @default(uuid())
+  gameId        String
+  game          Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  creatorId     String?
+  creator       User?    @relation(fields: [creatorId], references: [id], onDelete: SetNull)
+  questionText  String
+  options       String   @db.Text // JSON string array
+  correctAnswer String?
+  createdAt     DateTime @default(now())
+}
+
+model GameResult {
+  id          String   @id @default(uuid())
+  gameId      String
+  game        Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score       Int      @default(0)
+  answers     String   @db.Text // JSON string
+  completedAt DateTime @default(now())
+}
