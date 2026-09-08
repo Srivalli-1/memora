@@ -15,7 +15,7 @@ import {
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
-import settingsBg from '../assets/settings_bg.png';
+import settingsBg from '../assets/Settings_bg.png';
 
 const SettingsPage = () => {
   const { user, updateUser, logout } = useAuth();

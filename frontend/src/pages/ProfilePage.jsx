@@ -11,7 +11,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import Button from '../components/common/Button';
-import settingsBg from '../assets/settings_bg.png';
+import settingsBg from '../assets/Settings_bg.png';
 
 const ProfilePage = () => {
   const { user } = useAuth();
