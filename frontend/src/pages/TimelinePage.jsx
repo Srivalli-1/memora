@@ -6,6 +6,7 @@ import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
 import DeleteConfirmModal from '../components/common/DeleteConfirmModal';
 import { formatDate } from '../utils/formatters';
+import timelineBg from '../assets/timeline-bg.png';
 
 const TimelinePage = () => {
   const [events, setEvents] = useState([]);
@@ -194,7 +195,17 @@ const TimelinePage = () => {
   const displayList = events.length > 0 ? events : sampleEvents;
 
   return (
-    <div className="space-y-8 animate-fadeIn relative">
+    <div 
+      className="page-background space-y-8 animate-fadeIn relative min-h-screen py-8 px-4 sm:px-6 lg:px-8"
+      style={{
+        backgroundImage: `url(${timelineBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'scroll',
+        backgroundColor: '#fdfbf7'
+      }}
+    >
       {/* Botanical Corner Accents (Panel 6) */}
       <div className="absolute -top-6 -left-6 text-3xl opacity-75 select-none pointer-events-none transform -rotate-12">
         🌸🌿

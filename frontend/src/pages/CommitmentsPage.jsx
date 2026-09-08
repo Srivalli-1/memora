@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Users, Plus, Trash2, Edit2, Lock, CheckCircle2, Clock, ShieldCheck } from 'lucide-react';
+import { Users, Plus, Trash2, Edit2, Lock, CheckCircle2, Clock, ShieldCheck, Handshake } from 'lucide-react';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
 import DeleteConfirmModal from '../components/common/DeleteConfirmModal';
 import { formatDate, formatFullDate } from '../utils/formatters';
+import commitmentsBg from '../assets/commitments-bg.png';
 
 const CommitmentsPage = () => {
   const { user } = useAuth();
@@ -206,7 +207,7 @@ const CommitmentsPage = () => {
     creatorId: user?.id,
     participants: [
       { id: 'p1', user: { fullName: 'Valli' }, status: 'ACCEPTED', userId: user?.id },
-      { id: 'p2', user: { fullName: 'Arjun' }, status: 'ACCEPTED', userId: 'arjun' }
+      { id: 'p2', user: { fullName: 'Eswar' }, status: 'ACCEPTED', userId: 'Eswar' }
     ]
   });
 
@@ -225,7 +226,17 @@ const CommitmentsPage = () => {
   const isRealCommitment = commitments.some((c) => c.id === displayCommitment.id);
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div 
+      className="page-background space-y-6 animate-fadeIn min-h-screen py-8 px-4 sm:px-6 lg:px-8"
+      style={{
+        backgroundImage: `url(${commitmentsBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'scroll',
+        backgroundColor: '#fdfbf7'
+      }}
+    >
       {/* Header */}
       <div className="text-center space-y-1">
         <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#2c1810]">
@@ -237,9 +248,13 @@ const CommitmentsPage = () => {
       </div>
 
       {/* Main Layout: Left Archive / Right Physical Parchment Spread */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div
+        className={`grid grid-cols-1 gap-8 items-start ${
+          commitments.length <= 1 ? 'mx-auto w-full max-w-4xl' : 'lg:grid-cols-12'
+        }`}
+      >
         {/* Left Column: Pacts List (4 Cols) */}
-        <div className="lg:col-span-4 space-y-4">
+        <div className={`${commitments.length <= 1 ? 'w-full' : 'lg:col-span-4'} space-y-4`}>
           <Button
             variant="primary"
             size="sm"
@@ -252,8 +267,11 @@ const CommitmentsPage = () => {
 
           <div className="space-y-3">
             {commitments.length === 0 ? (
-              <div className="p-6 rounded-2xl warm-card border border-[#e8dfd1] text-center text-xs text-[#806958] font-serif">
-                No forged agreements yet. Click above to seal your first shared promise ♡
+              <div className="rounded-2xl warm-card border border-[#e8dfd1] p-5 text-center text-xs text-[#806958] font-serif">
+                <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl border border-[#f4cfd3] bg-[#fdf2f4] text-[#c86d74]">
+                  <Handshake className="h-5 w-5" />
+                </div>
+                No forged agreements yet. Seal your first shared promise ♡
               </div>
             ) : (
               commitments.map((c) => {
@@ -322,7 +340,7 @@ const CommitmentsPage = () => {
         </div>
 
         {/* Right Column: Physical Parchment Certificate with Red Wax Seal (8 Cols) */}
-        <div className="lg:col-span-8">
+        <div className={`${commitments.length <= 1 ? 'w-full' : 'lg:col-span-8'} `}>
           <div className="relative shadow-2xl rounded-2xl max-w-xl mx-auto">
             {/* Top Curled Scroll Roll */}
             <div className="scroll-roll w-full" />
@@ -363,7 +381,7 @@ const CommitmentsPage = () => {
                   {displayCommitment.participants && displayCommitment.participants.length > 0 ? (
                     displayCommitment.participants.map((p, idx) => {
                       const isSigned = p.status === 'ACCEPTED';
-                      const pName = p.user?.fullName || (idx === 0 ? 'Valli' : 'Arjun');
+                      const pName = p.user?.fullName || (idx === 0 ? 'Valli' : 'Eswar');
 
                       return (
                         <div key={p.id || idx} className="space-y-1">

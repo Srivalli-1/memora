@@ -2,12 +2,22 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Sparkles, BookOpen, Mail, HeartHandshake, Milestone, Heart } from 'lucide-react';
 import Button from '../components/common/Button';
+import heroBg from '../assets/01_hero_bg.png';
 
 const LandingPage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#1c120c] text-[#f7f2ea] flex flex-col relative overflow-hidden font-sans">
+    <div 
+      className="min-h-screen text-[#f7f2ea] flex flex-col relative overflow-hidden font-sans"
+      style={{
+        backgroundImage: `url(${heroBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundColor: '#1c120c'
+      }}
+    >
       {/* Warm Ambient Lamp Glows */}
       <div className="absolute top-1/4 left-1/3 w-[36rem] h-[36rem] bg-[#e6a85c]/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute top-10 right-10 w-[28rem] h-[28rem] bg-[#e89da2]/10 rounded-full blur-3xl pointer-events-none" />

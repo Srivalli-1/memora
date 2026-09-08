@@ -14,13 +14,16 @@ import {
   Search,
   X,
   ShieldAlert,
-  ArrowRight
+  ArrowRight,
+  Gamepad2
 } from 'lucide-react';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
 import DeleteConfirmModal from '../components/common/DeleteConfirmModal';
+import MultiplayerWordConnect from '../components/MultiplayerWordConnect';
 import { formatDate } from '../utils/formatters';
+import spacesBg from '../assets/commitments-bg.png';
 
 const SharedSpacesPage = () => {
   const { user } = useAuth();
@@ -59,6 +62,15 @@ const SharedSpacesPage = () => {
   // Remove Member Confirm Modal
   const [memberToRemove, setMemberToRemove] = useState(null);
   const [removeMemberLoading, setRemoveMemberLoading] = useState(false);
+
+  // Game Playing State
+  const [playingGame, setPlayingGame] = useState(false);
+  const [selectedGameType, setSelectedGameType] = useState(null);
+
+  // Invite Code State
+  const [inviteCode, setInviteCode] = useState(null);
+  const [loadingInviteCode, setLoadingInviteCode] = useState(false);
+  const [copiedInvite, setCopiedInvite] = useState(false);
 
   const fetchSpaces = async (keepActiveId = null) => {
     try {
@@ -255,7 +267,15 @@ const SharedSpacesPage = () => {
   };
 
   return (
-    <div className="space-y-8 animate-fadeIn max-w-6xl mx-auto">
+    <div
+      className="page-background space-y-8 animate-fadeIn px-4 py-8 sm:px-6 lg:px-10"
+      style={{
+        backgroundImage: `linear-gradient(rgba(250, 245, 237, 0.2), rgba(250, 245, 237, 0.2)), url(${spacesBg})`,
+        backgroundColor: '#fdfbf7',
+        backgroundAttachment: 'scroll',
+      }}
+    >
+      <div className="mx-auto max-w-6xl">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eee4d6] pb-6">
         <div>
@@ -557,6 +577,31 @@ const SharedSpacesPage = () => {
               </form>
             </div>
 
+            {/* Multiplayer Games Section */}
+            {activeSpace.members?.length === 2 && (
+              <div className="space-y-3 pt-2 border-t border-[#eee4d6]">
+                <h4 className="text-xs font-serif font-bold uppercase tracking-wider text-[#5c3e2e] flex items-center gap-1.5">
+                  <Gamepad2 className="w-3.5 h-3.5 text-[#c86d74]" />
+                  <span>Play Together</span>
+                </h4>
+                <p className="text-xs text-[#806958] font-serif">
+                  Multiplayer games to enjoy together 🎮
+                </p>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    setPlayingGame(true);
+                    setSelectedGameType('WORD_CONNECT');
+                  }}
+                  className="w-full"
+                  icon={Gamepad2}
+                >
+                  Play Word Connect
+                </Button>
+              </div>
+            )}
+
             {/* Footer */}
             <div className="flex items-center justify-end pt-3 border-t border-[#eee4d6]">
               <Button
@@ -717,6 +762,33 @@ const SharedSpacesPage = () => {
         </form>
       </Modal>
 
+      {/* Multiplayer Game Modal */}
+      <Modal
+        isOpen={playingGame}
+        onClose={() => {
+          setPlayingGame(false);
+          setSelectedGameType(null);
+        }}
+        title={selectedGameType === 'WORD_CONNECT' ? 'Word Connect' : 'Game'}
+        maxWidth="max-w-2xl"
+      >
+        {selectedGameType === 'WORD_CONNECT' && activeSpace && (
+          <MultiplayerWordConnect
+            sharedSpaceId={activeSpace.id}
+            onGameEnd={() => {
+              setPlayingGame(false);
+              setSelectedGameType(null);
+              // Refresh space to show updated game data
+              openSpaceDetails(activeSpace.id);
+            }}
+            onLeave={() => {
+              setPlayingGame(false);
+              setSelectedGameType(null);
+            }}
+          />
+        )}
+      </Modal>
+
       {/* Delete Space Confirm Modal */}
       <DeleteConfirmModal
         isOpen={Boolean(deleteTarget)}
@@ -742,6 +814,7 @@ const SharedSpacesPage = () => {
         loading={removeMemberLoading}
         confirmButtonText={memberToRemove?.userId === user?.id ? 'Leave' : 'Remove'}
       />
+      </div>
     </div>
   );
 };

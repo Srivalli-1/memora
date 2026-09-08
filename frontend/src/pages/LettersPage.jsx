@@ -10,13 +10,15 @@ import {
   Edit2,
   Trash2,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  Mail
 } from 'lucide-react';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
 import DeleteConfirmModal from '../components/common/DeleteConfirmModal';
 import { formatFullDate } from '../utils/formatters';
+import lettersBg from '../assets/letters-bg.png';
 
 const LettersPage = () => {
   const { user } = useAuth();
@@ -246,9 +248,19 @@ const LettersPage = () => {
     const canEdit = isSender && !activeLetter.isLocked;
 
     return (
-      <div className="space-y-6 animate-fadeIn max-w-3xl mx-auto">
+      <div 
+        className="page-background space-y-6 animate-fadeIn min-h-screen py-8 px-4 sm:px-6 lg:px-8"
+        style={{
+          backgroundImage: `linear-gradient(rgba(71, 40, 25, 0.16), rgba(250, 241, 226, 0.28)), url(${lettersBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'scroll',
+          backgroundColor: '#fdfbf7'
+        }}
+      >
         {/* Top Navigation Bar: Back Button + Meta Info + Action Controls */}
-        <div className="flex items-center justify-between border-b border-[#eee4d6] pb-4 flex-wrap gap-3">
+        <div className="relative z-10 flex items-center justify-between rounded-2xl border border-[#e5d7c4] bg-[#fdfbf7]/90 px-4 py-3 shadow-[0_6px_18px_rgba(61,36,23,0.12)] backdrop-blur-[2px] border-b-[#eee4d6] pb-4 flex-wrap gap-3">
           <button
             onClick={() => setViewMode('ARCHIVE')}
             className="inline-flex items-center gap-2 text-sm font-semibold text-[#5c3e2e] hover:text-[#2c1810] hover:translate-x-[-2px] transition duration-200"
@@ -421,9 +433,19 @@ const LettersPage = () => {
      ========================================================================= */
   if (viewMode === 'COMPOSE') {
     return (
-      <div className="space-y-6 animate-fadeIn">
+      <div 
+        className="page-background space-y-6 animate-fadeIn min-h-screen py-8 px-4 sm:px-6 lg:px-8"
+        style={{
+          backgroundImage: `linear-gradient(rgba(71, 40, 25, 0.16), rgba(250, 241, 226, 0.28)), url(${lettersBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'scroll',
+          backgroundColor: '#fdfbf7'
+        }}
+      >
         {/* Back to Archive Header */}
-        <div className="flex items-center justify-between border-b border-[#eee4d6] pb-3">
+        <div className="relative z-10 flex items-center justify-between rounded-2xl border border-[#e5d7c4] bg-[#fdfbf7]/90 px-4 py-3 shadow-[0_6px_18px_rgba(61,36,23,0.12)] backdrop-blur-[2px] border-b-[#eee4d6] pb-3">
           <button
             onClick={() => setViewMode('ARCHIVE')}
             className="inline-flex items-center gap-2 text-sm font-semibold text-[#5c3e2e] hover:text-[#2c1810] hover:translate-x-[-2px] transition duration-200"
@@ -621,11 +643,21 @@ const LettersPage = () => {
      VIEW 3: DEFAULT ARCHIVE VIEW ("My Letters ✉️")
      ========================================================================= */
   return (
-    <div className="space-y-8 animate-fadeIn max-w-4xl mx-auto">
+    <div 
+      className="page-background space-y-8 animate-fadeIn min-h-screen py-8 px-4 sm:px-6 lg:px-8"
+      style={{
+        backgroundImage: `linear-gradient(rgba(71, 40, 25, 0.16), rgba(250, 241, 226, 0.28)), url(${lettersBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'scroll',
+        backgroundColor: '#fdfbf7'
+      }}
+    >
       {/* Archive Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eee4d6] pb-6">
+      <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl bg-[#f7eee1]/90 px-5 py-4 shadow-[0_8px_24px_rgba(61,36,23,0.16)] backdrop-blur-[2px]">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#2c1810] flex items-center gap-2">
+          <h1 className="text-3xl sm:text-4xl font-serif font-bold tracking-[-0.01em] text-[#2c1810] flex items-center gap-2">
             <span>My Letters</span>
             <span className="text-2xl">✉️</span>
           </h1>
@@ -640,37 +672,42 @@ const LettersPage = () => {
           size="sm"
           icon={Plus}
           onClick={() => setViewMode('COMPOSE')}
-          className="shadow-sm"
+          className="bg-[#d78991] border-[#cc7c85] shadow-[0_5px_12px_rgba(156,74,84,0.18)] hover:bg-[#c97881]"
         >
           Compose Letter
         </Button>
       </div>
 
       {/* Archive Letters List */}
-      {loading ? (
-        <div className="py-16 text-center text-sm font-serif text-[#806958]">
-          Unlocking your personal letter chest...
-        </div>
-      ) : letters.length === 0 ? (
-        <div className="py-16 text-center space-y-4 p-8 rounded-3xl warm-card border border-[#e8dfd1]">
-          <div className="text-4xl">💌</div>
-          <h3 className="text-base font-serif font-bold text-[#2c1810]">
-            Your Letter Archive is Empty
-          </h3>
-          <p className="text-xs text-[#806958] font-serif max-w-sm mx-auto">
-            Write a letter to yourself, seal a time capsule for the future, or send private words to someone special.
-          </p>
-          <Button
-            variant="primary"
-            size="sm"
-            icon={Plus}
-            onClick={() => setViewMode('COMPOSE')}
-          >
-            Write Your First Letter
-          </Button>
-        </div>
-      ) : (
-        <div className="space-y-4">
+      <section className="relative z-10 rounded-[26px] bg-[#fbf7ef]/95 p-4 shadow-[0_14px_34px_rgba(61,36,23,0.16)] sm:p-6">
+        {loading ? (
+          <div className="py-12 text-center text-sm font-serif text-[#806958]">
+            Unlocking your personal letter chest...
+          </div>
+        ) : letters.length === 0 ? (
+          <div className="mx-auto flex max-w-lg flex-col items-center justify-center px-5 py-10 text-center sm:py-12">
+            <div className="relative mb-5 flex h-20 w-24 items-center justify-center rounded-xl border border-[#dfcdb6] bg-[#f7eee1] shadow-[0_8px_14px_rgba(61,36,23,0.12)] rotate-[-3deg]">
+              <Mail className="h-9 w-9 text-[#b96b72]" strokeWidth={1.35} />
+              <span className="absolute -top-2 left-1/2 h-5 w-10 -translate-x-1/2 rotate-[4deg] bg-[#e89da2]/60" />
+            </div>
+            <h3 className="font-serif text-xl font-bold text-[#2c1810]">
+              A quiet page for your words
+            </h3>
+            <p className="mx-auto mt-2 max-w-sm font-serif text-sm leading-relaxed text-[#806958]">
+              Write to yourself, seal a time capsule, or send something tender to someone special.
+            </p>
+            <Button
+              variant="primary"
+              size="sm"
+              icon={Plus}
+              onClick={() => setViewMode('COMPOSE')}
+              className="mt-5 bg-[#d78991] border-[#cc7c85] hover:bg-[#c97881]"
+            >
+              Write Your First Letter
+            </Button>
+          </div>
+        ) : (
+        <div className="space-y-3">
           {letters.map((ltr) => {
             const isSender = ltr.senderId === user?.id;
 
@@ -681,7 +718,7 @@ const LettersPage = () => {
                   setActiveLetter(ltr);
                   setViewMode('READ');
                 }}
-                className="group relative p-5 sm:p-6 rounded-2xl warm-card border border-[#e8dfd1] hover:border-[#f0c2c8] shadow-xs hover:shadow-md transition duration-200 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                className="group relative flex cursor-pointer flex-col justify-between gap-4 rounded-2xl bg-[#fffdf8] p-5 shadow-[0_4px_12px_rgba(61,36,23,0.08)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_9px_20px_rgba(61,36,23,0.13)] sm:flex-row sm:items-center sm:p-6"
               >
                 <div className="space-y-1.5 flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -732,7 +769,8 @@ const LettersPage = () => {
             );
           })}
         </div>
-      )}
+        )}
+      </section>
 
       {/* Delete Confirmation Modal for Archive view */}
       <DeleteConfirmModal

@@ -18,6 +18,7 @@ import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
 import DeleteConfirmModal from '../components/common/DeleteConfirmModal';
 import { formatDate, formatFullDate, getMoodMeta, MOOD_OPTIONS } from '../utils/formatters';
+import memoriesBg from '../assets/timeline-bg.png';
 
 const MemoriesPage = () => {
   const { user } = useAuth();
@@ -202,7 +203,15 @@ const MemoriesPage = () => {
   });
 
   return (
-    <div className="space-y-8 animate-fadeIn max-w-6xl mx-auto">
+    <div
+      className="page-background space-y-8 animate-fadeIn px-4 py-8 sm:px-6 lg:px-10"
+      style={{
+        backgroundImage: `linear-gradient(rgba(250, 245, 237, 0.18), rgba(250, 245, 237, 0.18)), url(${memoriesBg})`,
+        backgroundColor: '#fdfbf7',
+        backgroundAttachment: 'scroll',
+      }}
+    >
+      <div className="mx-auto max-w-6xl">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -273,13 +282,19 @@ const MemoriesPage = () => {
           Opening your memory collection... ♡
         </div>
       ) : filteredMemories.length === 0 ? (
-        <div className="p-12 text-center space-y-2 parchment-plaque rounded-3xl border border-[#e8dfd1]">
-          <p className="font-serif text-lg text-[#3d2417] font-semibold">
-            No memories found.
+        <div className="mx-auto max-w-xl space-y-3 rounded-3xl border border-[#e8dfd1] parchment-plaque p-7 text-center sm:p-8">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-[#f4cfd3] bg-[#fdf2f4] text-[#c86d74] shadow-sm">
+            <ImageIcon className="h-6 w-6" />
+          </div>
+          <p className="font-serif text-lg font-semibold text-[#3d2417]">
+            Your memory shelf is waiting.
           </p>
           <p className="text-xs text-[#806958] font-serif italic">
             Click "+ Add Memory" above to preserve your first beautiful moment ♡
           </p>
+          <Button variant="primary" size="sm" icon={Plus} onClick={openCreateModal}>
+            Add Your First Memory
+          </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
@@ -593,6 +608,7 @@ const MemoriesPage = () => {
         message={`Are you sure you want to delete "${deleteTarget?.title}"? This memory and its associated photos will be permanently deleted.`}
         loading={deleting}
       />
+      </div>
     </div>
   );
 };

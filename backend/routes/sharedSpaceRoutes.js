@@ -16,4 +16,7 @@ router.post('/:id/invite', sharedSpaceController.inviteUserToSpace);
 router.post('/invitations/:invitationId/respond', sharedSpaceController.respondToInvitation);
 router.delete('/:id/members/:memberUserId', sharedSpaceController.removeMember);
 
+router.get('/:id/invite-code', sharedSpaceController.getInviteCode);
+router.post('/join/by-invite-code', sharedSpaceController.joinByInviteCode);
+
 module.exports = router;

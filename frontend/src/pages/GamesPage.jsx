@@ -3,6 +3,7 @@ import confetti from 'canvas-confetti';
 import { Gamepad2, Play, Check, X, RotateCcw } from 'lucide-react';
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
+import gamesBg from '../assets/games-bg.png';
 
 const GamesPage = () => {
   const [activeGameModal, setActiveGameModal] = useState(null); // 'WYR', 'WORD', 'QUIZ', 'MATCH'
@@ -94,7 +95,17 @@ const GamesPage = () => {
   };
 
   return (
-    <div className="space-y-8 animate-fadeIn relative">
+    <div 
+      className="page-background space-y-8 animate-fadeIn relative min-h-screen py-8 px-4 sm:px-6 lg:px-8"
+      style={{
+        backgroundImage: `url(${gamesBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'scroll',
+        backgroundColor: '#fdfbf7'
+      }}
+    >
       {/* Botanical Leaves at Corners (Panel 7) */}
       <div className="absolute -top-6 -left-6 text-3xl opacity-75 select-none pointer-events-none transform -rotate-45">
         🌿🍃
@@ -104,7 +115,7 @@ const GamesPage = () => {
       </div>
 
       {/* Header */}
-      <div>
+      <div className="relative z-10 w-fit max-w-full rounded-2xl border border-[#e5d7c4] bg-[#fdfbf7]/90 px-5 py-3 shadow-[0_6px_18px_rgba(61,36,23,0.12)] backdrop-blur-[2px]">
         <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#2c1810]">
           Games
         </h1>

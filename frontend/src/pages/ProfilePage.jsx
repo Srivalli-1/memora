@@ -11,6 +11,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import Button from '../components/common/Button';
+import settingsBg from '../assets/settings_bg.png';
 
 const ProfilePage = () => {
   const { user } = useAuth();
@@ -35,7 +36,17 @@ const ProfilePage = () => {
   const displayBio = user?.bio || 'Just a girl who loves stories ♡';
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8 animate-fadeIn">
+    <div 
+      className="page-background space-y-8 animate-fadeIn min-h-screen py-8 px-4 sm:px-6 lg:px-8"
+      style={{
+        backgroundImage: `url(${settingsBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'scroll',
+        backgroundColor: '#fdfbf7'
+      }}
+    >
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-serif font-bold text-memora-espresso">
           My Profile

@@ -2,6 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .page-background {
+    min-height: 100vh;
+    width: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+  }
+
+  .open-book-fold {
+    background: linear-gradient(
+      to right,
+      transparent 0%,
+      rgba(103, 72, 49, 0.06) 35%,
+      rgba(72, 43, 28, 0.16) 50%,
+      rgba(103, 72, 49, 0.06) 65%,
+      transparent 100%
+    );
+    box-shadow: 0 0 18px rgba(61, 36, 23, 0.08);
+  }
+
+  .animate-page-turn {
+    animation: page-turn 360ms ease-out both;
+  }
+}
+
+@keyframes page-turn {
+  from {
+    opacity: 0.55;
+    transform: perspective(900px) rotateY(-2deg) translateX(5px);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(900px) rotateY(0) translateX(0);
+  }
+}
+
 @layer base {
   body {
     @apply bg-[#1a1008] text-memora-espresso font-sans antialiased selection:bg-memora-blush/30 selection:text-memora-espresso;
@@ -41,8 +79,8 @@
 /* Sidebar Dark Espresso Craftsmanship */
 .sidebar-espresso {
   background: linear-gradient(180deg, #24140c 0%, #1a0d07 100%);
-  border-right: 1px solid #3d2315;
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.35);
+  border-right: 0;
+  box-shadow: none;
 }
 
 /* Tactile Parchment Plaques (Action Objects) */

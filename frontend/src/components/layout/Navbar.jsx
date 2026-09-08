@@ -13,7 +13,7 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
   const userInitial = user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'V';
 
   return (
-    <header className="sticky top-0 z-30 w-full bg-[#fbf8f2]/90 backdrop-blur-md border-b border-[#eee4d6] transition-all">
+    <header className="sticky top-0 z-30 w-full bg-[#fbf8f2]/80 backdrop-blur-md transition-all">
       <div className="flex items-center justify-between px-4 sm:px-8 h-16">
         {/* Left: Mobile Toggle */}
         <div className="flex items-center gap-3">

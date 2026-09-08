@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const http = require('http');
+const { Server: SocketIOServer } = require('socket.io');
 
 const authRoutes = require('./routes/authRoutes');
 const memoryRoutes = require('./routes/memoryRoutes');
@@ -12,11 +14,20 @@ const letterRoutes = require('./routes/letterRoutes');
 const sharedSpaceRoutes = require('./routes/sharedSpaceRoutes');
 const commitmentRoutes = require('./routes/commitmentRoutes');
 const gameRoutes = require('./routes/gameRoutes');
+const gameRoomRoutes = require('./routes/gameRoomRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const userRoutes = require('./routes/userRoutes');
 const errorMiddleware = require('./middleware/errorMiddleware');
 
 const app = express();
+const server = http.createServer(app);
+const io = new SocketIOServer(server, {
+  cors: {
+    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    credentials: true
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
@@ -60,6 +71,7 @@ app.use('/api/letters', letterRoutes);
 app.use('/api/spaces', sharedSpaceRoutes);
 app.use('/api/commitments', commitmentRoutes);
 app.use('/api/games', gameRoutes);
+app.use('/api/game-rooms', gameRoomRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/users', userRoutes);
 
@@ -74,7 +86,78 @@ app.use('/api/*', (req, res) => {
 // Centralized error handling
 app.use(errorMiddleware);
 
-app.listen(PORT, () => {
+// Socket.IO Event Handlers for Game Rooms
+io.on('connection', (socket) => {
+  console.log(`✨ User connected: ${socket.id}`);
+
+  // Join a game room
+  socket.on('game:join', async (data) => {
+    const { gameRoomId, userId } = data;
+    const roomName = `game-${gameRoomId}`;
+    socket.join(roomName);
+    
+    // Notify others that a player joined
+    io.to(roomName).emit('game:player-joined', {
+      userId,
+      timestamp: new Date()
+    });
+    
+    console.log(`User ${userId} joined game room ${gameRoomId}`);
+  });
+
+  // Player submits answer
+  socket.on('game:answer-submitted', async (data) => {
+    const { gameRoomId, userId, answer, questionIndex } = data;
+    const roomName = `game-${gameRoomId}`;
+    
+    // Broadcast answer to all players in the room
+    io.to(roomName).emit('game:answer-received', {
+      userId,
+      answer,
+      questionIndex,
+      timestamp: new Date()
+    });
+  });
+
+  // Move to next question
+  socket.on('game:next-question', async (data) => {
+    const { gameRoomId, questionIndex } = data;
+    const roomName = `game-${gameRoomId}`;
+    
+    io.to(roomName).emit('game:question-changed', {
+      questionIndex,
+      timestamp: new Date()
+    });
+  });
+
+  // Game completed
+  socket.on('game:complete', async (data) => {
+    const { gameRoomId, results } = data;
+    const roomName = `game-${gameRoomId}`;
+    
+    io.to(roomName).emit('game:completed', {
+      results,
+      timestamp: new Date()
+    });
+  });
+
+  // Leave game room
+  socket.on('game:leave', (data) => {
+    const { gameRoomId } = data;
+    const roomName = `game-${gameRoomId}`;
+    socket.leave(roomName);
+    
+    io.to(roomName).emit('game:player-left', {
+      timestamp: new Date()
+    });
+  });
+
+  socket.on('disconnect', () => {
+    console.log(`✨ User disconnected: ${socket.id}`);
+  });
+});
+
+server.listen(PORT, () => {
   console.log(`✨ MEMORA Server running smoothly on http://localhost:${PORT}`);
 });
 

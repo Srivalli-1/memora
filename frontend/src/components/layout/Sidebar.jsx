@@ -14,6 +14,7 @@ import {
   Users
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import sidebarBg from '../../assets/sidebar_bg.png';
 
 const navigation = [
   { name: 'Home', to: '/', icon: Home },
@@ -50,10 +51,17 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
         className={`fixed top-0 bottom-0 left-0 z-40 w-64 sidebar-espresso flex flex-col justify-between transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
+        style={{
+          backgroundImage: `url(${sidebarBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center top',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'scroll'
+        }}
       >
         <div>
           {/* Brand Header */}
-          <div className="h-20 flex items-center justify-between px-6 border-b border-[#3d2315]">
+          <div className="h-20 flex items-center justify-between px-6">
             <NavLink to="/" className="flex items-center gap-2 group">
               <span className="text-xl font-serif font-bold tracking-wider text-[#fdfbf7]">
                 MEMORA
@@ -106,7 +114,7 @@ const Sidebar = ({ isOpen, closeSidebar }) => {
         </div>
 
         {/* Bottom Section */}
-        <div className="p-4 border-t border-[#3d2315] space-y-1">
+        <div className="p-4 space-y-1">
           <NavLink
             to="/settings"
             onClick={closeSidebar}

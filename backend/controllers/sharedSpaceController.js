@@ -555,6 +555,133 @@ const deleteSpace = async (req, res, next) => {
   }
 };
 
+// Get invite code for a space
+const getInviteCode = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const space = await prisma.sharedSpace.findUnique({
+      where: { id },
+      select: { id: true, inviteCode: true, ownerId: true }
+    });
+
+    if (!space) {
+      return res.status(404).json({
+        success: false,
+        message: 'Space not found.'
+      });
+    }
+
+    // Verify user is a member
+    const membership = await prisma.sharedSpaceMember.findUnique({
+      where: {
+        sharedSpaceId_userId: {
+          sharedSpaceId: id,
+          userId
+        }
+      }
+    });
+
+    if (!membership) {
+      return res.status(403).json({
+        success: false,
+        message: 'You are not a member of this space.'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      inviteCode: space.inviteCode
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Join space using invite code
+const joinByInviteCode = async (req, res, next) => {
+  try {
+    const { inviteCode } = req.body;
+    const userId = req.user.id;
+
+    if (!inviteCode) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invite code is required.'
+      });
+    }
+
+    const space = await prisma.sharedSpace.findUnique({
+      where: { inviteCode },
+      include: {
+        members: true,
+        owner: {
+          select: { id: true, fullName: true, username: true, avatarUrl: true }
+        }
+      }
+    });
+
+    if (!space) {
+      return res.status(404).json({
+        success: false,
+        message: 'Invalid invite code. Space not found.'
+      });
+    }
+
+    // Check if user is already a member
+    const existingMember = space.members.find(m => m.userId === userId);
+    if (existingMember) {
+      return res.status(400).json({
+        success: false,
+        message: 'You are already a member of this space.'
+      });
+    }
+
+    // Enforce max 2 members per space
+    if (space.members.length >= 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'This shared space has reached its member limit (maximum 2 members).'
+      });
+    }
+
+    // Add user to space
+    await prisma.sharedSpaceMember.create({
+      data: {
+        sharedSpaceId: space.id,
+        userId,
+        role: 'MEMBER'
+      }
+    });
+
+    // Notify space owner
+    await prisma.notification.create({
+      data: {
+        userId: space.ownerId,
+        title: 'New Member Joined 🎉',
+        message: `${req.user.fullName} joined "${space.name}" using your invite code.`,
+        type: 'ACTIVITY',
+        link: `/spaces/${space.id}`
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: `Successfully joined "${space.name}"!`,
+      space: {
+        id: space.id,
+        name: space.name,
+        description: space.description,
+        coverImage: space.coverImage,
+        owner: space.owner
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getMySpaces,
   getSpaceById,
@@ -563,5 +690,7 @@ module.exports = {
   inviteUserToSpace,
   respondToInvitation,
   removeMember,
-  deleteSpace
+  deleteSpace,
+  getInviteCode,
+  joinByInviteCode
 };

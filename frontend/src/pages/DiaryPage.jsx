@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { Plus, Trash2, Edit3, Image as ImageIcon, X, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Edit3, Image as ImageIcon, X, AlertCircle, Heart, PenLine } from 'lucide-react';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
 import DeleteConfirmModal from '../components/common/DeleteConfirmModal';
-import { formatDate, formatFullDate } from '../utils/formatters';
+import { formatDate, formatFullDate, getMoodMeta, MOOD_OPTIONS } from '../utils/formatters';
+import diaryBg from '../assets/diary-bg.png';
 
 const DiaryPage = () => {
   const [entries, setEntries] = useState([]);
@@ -30,6 +31,8 @@ const DiaryPage = () => {
   // Delete Confirm Modal State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [reactedEntryIds, setReactedEntryIds] = useState(() => new Set());
+  const [reactionCounts, setReactionCounts] = useState({});
 
   const fetchEntries = async (keepSelectedId = null) => {
     try {
@@ -186,6 +189,20 @@ const DiaryPage = () => {
     }
   };
 
+  const toggleReaction = (entryId) => {
+    setReactedEntryIds((previous) => {
+      const next = new Set(previous);
+      const reacted = next.has(entryId);
+      if (reacted) next.delete(entryId);
+      else next.add(entryId);
+      setReactionCounts((counts) => ({
+        ...counts,
+        [entryId]: Math.max(0, (counts[entryId] || 0) + (reacted ? -1 : 1))
+      }));
+      return next;
+    });
+  };
+
   // Fallback sample entry matching Panel 3 if database is completely empty
   const displayEntry = selectedEntry || (entries.length > 0 ? entries[0] : {
     id: 'sample',
@@ -197,9 +214,19 @@ const DiaryPage = () => {
   });
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div 
+      className="page-background space-y-6 animate-fadeIn min-h-screen py-8 px-4 sm:px-6 lg:px-8"
+      style={{
+        backgroundImage: `url(${diaryBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'scroll',
+        backgroundColor: '#fdfbf7'
+      }}
+    >
       {/* Header */}
-      <div className="text-center space-y-1">
+      <div className="relative z-10 mx-auto w-fit max-w-full rounded-2xl border border-[#e5d7c4] bg-[#fdfbf7]/90 px-6 py-3 text-center shadow-[0_6px_18px_rgba(61,36,23,0.12)] backdrop-blur-[2px] space-y-1">
         <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#2c1810]">
           My Diary
         </h1>
@@ -208,8 +235,8 @@ const DiaryPage = () => {
         </p>
       </div>
 
-      {/* Real Physical Desk Stage (Dark Rich Wooden Desk Scene matching Panel 3) */}
-      <div className="dark-wood-desk p-6 sm:p-10 lg:p-12 rounded-3xl relative overflow-hidden shadow-2xl">
+      {/* Notebook stage: transparent so the dedicated diary background remains visible around the book. */}
+      <div className="relative mx-auto max-w-5xl py-2 sm:py-4">
         {/* Warm Ambient Lamp Glow */}
         <div className="absolute top-0 left-1/3 w-80 h-80 bg-[#e8a85a]/12 rounded-full blur-3xl pointer-events-none" />
 
@@ -229,16 +256,8 @@ const DiaryPage = () => {
 
           {/* Book Inner Spread */}
           <div className="diary-book grid grid-cols-1 md:grid-cols-2 relative min-h-[580px] bg-[#fbf8f2]">
-            {/* Metallic Ring Binder Spine with Cast Shadow */}
-            <div className="hidden md:flex diary-spine flex-col justify-around items-center py-8">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-1">
-                  <div className="page-hole" />
-                  <div className="binder-ring" />
-                  <div className="page-hole" />
-                </div>
-              ))}
-            </div>
+            {/* Quiet center fold: the book stays tactile without competing with the pages. */}
+            <div className="open-book-fold pointer-events-none absolute inset-y-0 left-1/2 z-20 hidden w-8 -translate-x-1/2 md:block" />
 
             {/* LEFT PAGE: Entries Timeline */}
             <div className="p-6 sm:p-8 md:pr-10 border-b md:border-b-0 md:border-r border-[#e8dfd1] flex flex-col justify-between relative bg-[#fdfbf7] rounded-l-xl">
@@ -252,14 +271,18 @@ const DiaryPage = () => {
                   <span>New Entry</span>
                 </button>
 
-                {/* Milestone Entries List */}
-                <div className="relative pl-6 space-y-5 max-h-[420px] overflow-y-auto pr-1">
+                {/* Browsable entry index */}
+                <div className="relative pl-6 space-y-3 max-h-[420px] overflow-y-auto pr-1">
                   {/* Vertical dotted milestone line */}
                   <div className="absolute left-[7px] top-2 bottom-2 w-0.5 border-l-2 border-dotted border-[#d8cbb8]" />
 
                   {entries.length === 0 ? (
-                    <div className="py-8 text-center text-xs text-[#806958] font-serif">
-                      No entries yet. Click "+ New Entry" above to write your very first page ♡
+                    <div className="flex flex-col items-center justify-center py-10 text-center text-xs text-[#806958] font-serif">
+                      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-[#e8dfd1] bg-[#faf3e8] text-[#b06a6f] shadow-xs">
+                        <PenLine className="h-5 w-5" />
+                      </div>
+                      <p className="font-semibold text-[#5c3e2e]">Your first page is waiting.</p>
+                      <p className="mt-1 max-w-[210px] leading-relaxed">Click &quot;+ New Entry&quot; above to write your very first page ♡</p>
                     </div>
                   ) : (
                     entries.map((entry) => {
@@ -269,7 +292,7 @@ const DiaryPage = () => {
                         <div
                           key={entry.id}
                           onClick={() => setSelectedEntry(entry)}
-                          className={`relative group cursor-pointer transition p-2.5 rounded-xl ${
+                          className={`relative group cursor-pointer transition p-3 rounded-xl border ${
                             isSelected ? 'bg-[#fbeeed]/80 border border-[#f4cfd3]' : 'hover:bg-[#faf4ea]'
                           }`}
                         >
@@ -286,9 +309,14 @@ const DiaryPage = () => {
                             <span className="block text-[11px] font-semibold text-[#806958]">
                               {formatDate(entry.date)}
                             </span>
-                            <h4 className="text-xs font-serif font-bold text-[#2c1810] line-clamp-1 mt-0.5">
+                            <div className="flex items-center justify-between gap-2">
+                              <h4 className="text-xs font-serif font-bold text-[#2c1810] line-clamp-1 mt-0.5">
                               "{entry.title}"
-                            </h4>
+                              </h4>
+                              <span className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] ${getMoodMeta(entry.mood).bg}`}>
+                                {getMoodMeta(entry.mood).emoji}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       );
@@ -297,33 +325,39 @@ const DiaryPage = () => {
                 </div>
               </div>
 
-              <div className="pt-4 text-[11px] text-[#9c8474] font-serif italic text-center">
+              <div className="pt-4 text-[11px] text-[#806958] font-serif italic text-center">
                 Memora Personal Sanctuary
               </div>
             </div>
 
             {/* RIGHT PAGE: Selected Entry on Ruled Paper */}
-            <div className="p-6 sm:p-10 md:pl-12 flex flex-col justify-between relative bg-[#fdfbf7] rounded-r-xl overflow-hidden">
+            <div key={displayEntry.id} className="group animate-page-turn p-6 sm:p-10 md:pl-12 flex flex-col justify-between relative bg-[#fdfbf7] rounded-r-xl overflow-hidden">
               <div className="space-y-4">
                 {/* Date at top right */}
-                <div className="flex items-center justify-between border-b border-[#eee4d6] pb-3">
-                  <span className="font-handwriting text-sm sm:text-base text-[#7a6453]">
-                    {formatFullDate(displayEntry.date)}
-                  </span>
+                <div className="flex items-center justify-between gap-3 border-b border-[#eee4d6] pb-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-handwriting text-sm sm:text-base text-[#7a6453]">
+                      {formatFullDate(displayEntry.date)}
+                    </span>
+                    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[10px] font-semibold ${getMoodMeta(displayEntry.mood).bg}`}>
+                      <span>{getMoodMeta(displayEntry.mood).emoji}</span>
+                      <span>{displayEntry.mood || 'Reflective'}</span>
+                    </span>
+                  </div>
 
                   {/* Edit & Delete Controls (Only for real saved entries) */}
                   {selectedEntry && (
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 opacity-70 transition group-hover:opacity-100">
                       <button
                         onClick={openEditEntry}
-                        className="p-1.5 rounded-lg text-[#806958] hover:text-[#2c1810] hover:bg-[#ede3d5] text-xs transition"
+                        className="rounded-lg p-1.5 text-[#806958] transition hover:bg-[#ede3d5] hover:text-[#2c1810] focus:outline-none focus:ring-2 focus:ring-[#e89da2]/60"
                         title="Edit Page"
                       >
                         <Edit3 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => setIsDeleteModalOpen(true)}
-                        className="p-1.5 rounded-lg text-[#806958] hover:text-[#a8323e] hover:bg-[#fbeeed] text-xs transition"
+                        className="rounded-lg p-1.5 text-[#806958] transition hover:bg-[#fbeeed] hover:text-[#a8323e] focus:outline-none focus:ring-2 focus:ring-[#e89da2]/60"
                         title="Delete Page"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -343,9 +377,19 @@ const DiaryPage = () => {
                 </div>
 
                 {/* Drawn Heart */}
-                <div className="text-[#c86d74] text-xl font-handwriting">
-                  ♡
-                </div>
+                <button
+                  type="button"
+                  onClick={() => toggleReaction(displayEntry.id)}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-handwriting transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[#e89da2]/60 ${
+                    reactedEntryIds.has(displayEntry.id)
+                      ? 'border-[#e89da2] bg-[#fbeeed] text-[#b94a55]'
+                      : 'border-[#eee4d6] bg-[#faf6f0] text-[#c86d74]'
+                  }`}
+                  aria-label="React to this diary entry"
+                >
+                  <Heart className="h-4 w-4" fill={reactedEntryIds.has(displayEntry.id) ? 'currentColor' : 'none'} />
+                  <span>{reactionCounts[displayEntry.id] || 0}</span>
+                </button>
               </div>
 
               {/* Bottom Row: Botanical Pressed Flower & Polaroid Photo Gallery */}
@@ -357,7 +401,7 @@ const DiaryPage = () => {
 
                 {/* Polaroid Photo(s) Clipped to Page */}
                 {displayEntry.images && displayEntry.images.length > 0 && (
-                  <div className="flex items-center gap-2 flex-wrap justify-end">
+                  <div className="flex max-w-[58%] items-center gap-2 flex-wrap justify-end">
                     {displayEntry.images.map((img, idx) => (
                       <div
                         key={img.id || idx}
@@ -428,6 +472,19 @@ const DiaryPage = () => {
             required
           />
 
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold text-[#4a2e1b]">How are you feeling?</label>
+            <select
+              value={formData.mood}
+              onChange={(e) => setFormData({ ...formData, mood: e.target.value })}
+              className="w-full rounded-xl border border-[#e8dfd1] bg-[#fdfbf7] px-3 py-2.5 text-xs text-[#2c1810] outline-none transition focus:border-[#e89da2] focus:ring-2 focus:ring-[#e89da2]/30"
+            >
+              {MOOD_OPTIONS.map((mood) => (
+                <option key={mood} value={mood}>{getMoodMeta(mood).emoji} {mood}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Existing Photos Management (when editing) */}
           {isEditing && existingImages.length > 0 && (
             <div className="space-y-2">
@@ -455,15 +512,31 @@ const DiaryPage = () => {
           {/* Attach New Polaroid Photo(s) */}
           <div>
             <label className="block text-xs font-semibold text-[#4a2e1b] mb-1.5">
-              {isEditing ? 'Add More Photos (Optional)' : 'Attach Polaroid Photo(s) (Optional)'}
+              {isEditing ? 'Add More Photos (Optional)' : 'Attach a photo (Optional)'}
             </label>
             <input
+              id="diary-photo-upload"
               type="file"
               accept="image/*"
               multiple
               onChange={handleFileSelect}
-              className="w-full text-xs text-[#4a2e1b] file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#fbeeed] file:text-[#c86d74] hover:file:bg-[#f7d8dc] cursor-pointer"
+              className="sr-only"
             />
+            <label
+              htmlFor="diary-photo-upload"
+              className="group flex cursor-pointer items-center gap-4 rounded-2xl border border-dashed border-[#d8cbb8] bg-[#faf6f0] p-3 transition hover:border-[#e89da2] hover:bg-[#fdf2f4] focus-within:ring-2 focus-within:ring-[#e89da2]/50"
+            >
+              <span className="relative flex h-16 w-14 shrink-0 items-center justify-center border border-[#ded1be] bg-white p-1 pb-4 shadow-sm rotate-[-3deg]">
+                <span className="flex h-full w-full items-center justify-center bg-[#f4eee7] text-[#c86d74]">
+                  <ImageIcon className="h-5 w-5" />
+                </span>
+                <span className="absolute -top-1.5 left-1/2 h-2 w-5 -translate-x-1/2 rotate-[-4deg] bg-[#e89da2]/60" />
+              </span>
+              <span className="font-serif text-xs text-[#705645]">
+                <strong className="block text-[#3d2417]">Choose a photo for this page</strong>
+                <span className="mt-0.5 block italic">Click to attach a polaroid memory.</span>
+              </span>
+            </label>
             {filePreviews.length > 0 && (
               <div className="mt-2.5 flex flex-wrap gap-2">
                 {filePreviews.map((src, i) => (

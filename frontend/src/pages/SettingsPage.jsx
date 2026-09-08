@@ -15,6 +15,7 @@ import {
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
+import settingsBg from '../assets/settings_bg.png';
 
 const SettingsPage = () => {
   const { user, updateUser, logout } = useAuth();
@@ -123,7 +124,17 @@ const SettingsPage = () => {
   const displayBio = user?.bio || 'Just a girl who loves stories ♡';
 
   return (
-    <div className="space-y-8 animate-fadeIn">
+    <div 
+      className="page-background space-y-8 animate-fadeIn min-h-screen py-8 px-4 sm:px-6 lg:px-8"
+      style={{
+        backgroundImage: `url(${settingsBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'scroll',
+        backgroundColor: '#fdfbf7'
+      }}
+    >
       {/* Title */}
       <h1 className="text-3xl font-serif font-bold text-memora-espresso">
         Settings

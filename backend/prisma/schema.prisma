@@ -140,6 +140,7 @@ model SharedSpace {
   coverImage  String?
   ownerId     String
   owner       User                    @relation("OwnedSpaces", fields: [ownerId], references: [id], onDelete: Cascade)
+  inviteCode  String?                 @unique @default(uuid())
   createdAt   DateTime                @default(now())
   updatedAt   DateTime                @updatedAt
 
@@ -150,6 +151,7 @@ model SharedSpace {
   letters     Letter[]
   commitments Commitment[]
   games       Game[]
+  gameRooms   GameRoom[]
 }
 
 model SharedSpaceMember {
@@ -254,4 +256,33 @@ model GameResult {
   score       Int      @default(0)
   answers     String   @db.Text // JSON string
   completedAt DateTime @default(now())
+}
+
+model GameRoom {
+  id              String                @id @default(uuid())
+  sharedSpaceId   String
+  sharedSpace     SharedSpace           @relation(fields: [sharedSpaceId], references: [id], onDelete: Cascade)
+  gameType        String                // "WORD_CONNECT", "WOULD_YOU_RATHER", "QUIZ", "MEMORY_MATCH"
+  status          String                @default("WAITING") // "WAITING", "IN_PROGRESS", "COMPLETED"
+  currentQuestion String?               @db.Text // JSON object
+  questionIndex   Int                   @default(0)
+  players         GameRoomPlayer[]
+  winner          String?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+}
+
+model GameRoomPlayer {
+  id          String      @id @default(uuid())
+  gameRoomId  String
+  gameRoom    GameRoom    @relation(fields: [gameRoomId], references: [id], onDelete: Cascade)
+  userId      String
+  score       Int         @default(0)
+  correctCount Int        @default(0)
+  answers     String      @default("{}") @db.Text // JSON object
+  isReady     Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@unique([gameRoomId, userId])
 }
