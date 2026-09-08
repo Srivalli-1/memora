@@ -21,15 +21,22 @@ const errorMiddleware = require('./middleware/errorMiddleware');
 
 const app = express();
 const server = http.createServer(app);
+const CLIENT_URLS = (process.env.CLIENT_URL || 'http://localhost:5173')
+  .split(',')
+  .map((url) => url.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+const isAllowedOrigin = (origin) => !origin || CLIENT_URLS.includes(origin);
+
 const io = new SocketIOServer(server, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      callback(null, isAllowedOrigin(origin));
+    },
     credentials: true
   }
 });
 
 const PORT = process.env.PORT || 5000;
-const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -41,8 +48,7 @@ if (!fs.existsSync(uploadsDir)) {
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests from client or when no origin (like mobile/curl/postman)
-      callback(null, true);
+      callback(null, isAllowedOrigin(origin));
     },
     credentials: true
   })

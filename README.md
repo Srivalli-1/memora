@@ -137,6 +137,7 @@ DATABASE_URL="postgresql://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/memora
 JWT_SECRET=memora_super_secret_jwt_key_98374982374982374982374
 PORT=5000
 CLIENT_URL=http://localhost:5173
+SERVER_URL=http://localhost:5000
 
 # Optional: Cloudinary credentials (If not configured, images safely save to backend/uploads/)
 CLOUDINARY_CLOUD_NAME=YOUR_CLOUD_NAME
@@ -151,8 +152,28 @@ CLOUDINARY_API_SECRET=YOUR_API_SECRET
 Create `frontend/.env` (copy from `frontend/.env.example`):
 
 ```env
-VITE_API_URL=http://localhost:5000/api
+VITE_API_URL=http://localhost:5000
 ```
+
+For deployment, set these variables in Netlify:
+
+```env
+VITE_API_URL=https://YOUR-RENDER-SERVICE.onrender.com
+```
+
+Set these variables in Render for the backend:
+
+```env
+CLIENT_URL=https://YOUR-NETLIFY-SITE.netlify.app
+SERVER_URL=https://YOUR-RENDER-SERVICE.onrender.com
+PORT=10000
+DATABASE_URL=your-render-postgresql-connection-string
+JWT_SECRET=your-production-jwt-secret
+```
+
+`VITE_API_URL` is the backend origin only; do not append `/api`. The frontend adds
+`/api` to REST requests and uses the origin for Socket.IO. For multiple Netlify
+origins, separate them in `CLIENT_URL` with commas.
 
 ---
 
