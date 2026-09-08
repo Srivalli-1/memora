@@ -56,6 +56,20 @@ app.use(
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'MEMORA Backend API is running successfully'
+  });
+});
+
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    status: 'healthy'
+  });
+});
+
 // Static uploads serving
 app.use('/uploads', express.static(uploadsDir));
 
