@@ -21,19 +21,39 @@ const errorMiddleware = require('./middleware/errorMiddleware');
 
 const app = express();
 const server = http.createServer(app);
-const CLIENT_URLS = (process.env.CLIENT_URL || 'http://localhost:5173')
+const CLIENT_URLS = (process.env.CLIENT_URL || '')
   .split(',')
   .map((url) => url.trim().replace(/\/+$/, ''))
   .filter(Boolean);
-const isAllowedOrigin = (origin) => !origin || CLIENT_URLS.includes(origin);
+const LOCAL_ORIGINS = new Set([
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5000'
+]);
+const NETLIFY_MAIN_ORIGIN = 'https://chipper-conkies-fd728b.netlify.app';
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+  if (CLIENT_URLS.includes(origin) || LOCAL_ORIGINS.has(origin) || origin === NETLIFY_MAIN_ORIGIN) {
+    return true;
+  }
+
+  try {
+    const url = new URL(origin);
+    return url.protocol === 'https:' && url.hostname.endsWith('.netlify.app');
+  } catch {
+    return false;
+  }
+};
+const corsOptions = {
+  origin: (origin, callback) => {
+    callback(null, isAllowedOrigin(origin));
+  },
+  credentials: true,
+  optionsSuccessStatus: 204
+};
 
 const io = new SocketIOServer(server, {
-  cors: {
-    origin: (origin, callback) => {
-      callback(null, isAllowedOrigin(origin));
-    },
-    credentials: true
-  }
+  cors: corsOptions
 });
 
 const PORT = process.env.PORT || 5000;
@@ -45,14 +65,7 @@ if (!fs.existsSync(uploadsDir)) {
 }
 
 // Middleware
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      callback(null, isAllowedOrigin(origin));
-    },
-    credentials: true
-  })
-);
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
